@@ -1,7 +1,11 @@
+from datetime import datetime
+
 import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.event.adapter.output.persistence.sqlalchemy.event import EventSQLAlchemyRepo
+from app.event.domain.entity.event import StatusEnum
 from app.server import app
 from app.user.adapter.output.persistence.sqlalchemy.user import UserSQLAlchemyRepo
 from app.user.application.exception import (
@@ -9,6 +13,7 @@ from app.user.application.exception import (
     DuplicateEmailOrNicknameException,
     UserNotFoundException,
 )
+from tests.support.event_fixture import make_event
 from tests.support.token import USER_ID_1_TOKEN
 from tests.support.user_fixture import make_user
 
@@ -175,3 +180,149 @@ async def test_login(session: AsyncSession):
     sut = response.json()
     assert "token" in sut
     assert "refresh_token" in sut
+
+
+@pytest.mark.asyncio
+async def test_get_user_by_id(session: AsyncSession):
+    email = "h@id.e"
+    password = "password"
+    user = make_user(
+        id=1,
+        password=password,
+        email=email,
+        nickname="hide",
+        is_admin=True,
+        lat=37.123,
+        lng=127.123,
+    )
+    session.add(user)
+    await session.commit()
+
+    event=make_event()
+    session.add(event)
+    await session.commit()
+
+    #
+    async with AsyncClient(app=app, base_url="http://test") as client:
+        response = await client.patch("/api/v1/event/1", headers=HEADERS, json={"user_id": 1})
+
+    assert response.json() == {"event_id": 1, "user_id": 1}
+
+    async with AsyncClient(app=app, base_url="http://test") as client:
+        response = await client.get("/api/v1/user/1", headers=HEADERS)
+
+    sut = response.json()
+    assert sut["id"] == 1
+    assert sut["email"] == email
+    assert sut["nickname"] == "hide"
+    assert len(sut["events"]) == 1
+    assert sut["events"][0]["id"] == 1
+    assert sut["events"][0]["title"] == "title"
+
+@pytest.mark.asyncio
+async def test_add_event_by_id(session: AsyncSession):
+    email = "h@id.e"
+    password = "password"
+    user = make_user(
+        id=1,
+        password=password,
+        email=email,
+        nickname="hide",
+        is_admin=True,
+        lat=37.123,
+        lng=127.123,
+    )
+    session.add(user)
+    await session.commit()
+
+    event=make_event()
+    session.add(event)
+    await session.commit()
+
+    async with AsyncClient(app=app, base_url="http://test") as client:
+        response = await client.patch("/api/v1/user/1", headers=HEADERS, json={"event_id": 1})
+
+    assert response.json() == {"user_id": 1, "event_id": 1}
+    user_repo = UserSQLAlchemyRepo()
+    events = await user_repo.get_events_by_id(user_id=1)
+    assert events is not None
+    assert events[0].id == 1
+    assert events[0].title == "title"
+
+@pytest.mark.asyncio
+async def test_merge_events_by_id(session: AsyncSession):
+    email = "h@id.e"
+    password = "password"
+    user = make_user(
+        id=1,
+        password=password,
+        email=email,
+        nickname="hide",
+        is_admin=True,
+        lat=37.123,
+        lng=127.123,
+    )
+    session.add(user)
+    await session.commit()
+
+    # overlapping event1 and event2
+    event1=make_event(title="title1",description="description1",status=StatusEnum.TODO,
+                      startTime=datetime(2024, 4, 10, 9, 0),
+                      endTime=datetime(2024, 4, 10, 10, 0))
+    session.add(event1)
+    await session.commit()
+
+    event2=make_event(title="title2",description="description2",status=StatusEnum.TODO,
+                      startTime=datetime(2024, 4, 10, 10, 0),
+                      endTime=datetime(2024, 4, 10, 11, 0))
+    session.add(event2)
+    await session.commit()
+
+    # non-overlapping event3
+    event3=make_event(title="title3",description="description3",status=StatusEnum.TODO,
+                        startTime=datetime(2024, 4, 10, 12, 0),
+                        endTime=datetime(2024, 4, 10, 13, 0))
+    session.add(event3)
+    await session.commit()
+
+    user_repo = UserSQLAlchemyRepo()
+    event_repo = EventSQLAlchemyRepo()
+
+    # add events to user
+    async with AsyncClient(app=app, base_url="http://test") as client:
+        response = await client.patch("/api/v1/user/1", headers=HEADERS, json={"event_id": 1})
+    async with AsyncClient(app=app, base_url="http://test") as client:
+        response = await client.patch("/api/v1/user/1", headers=HEADERS, json={"event_id": 2})
+    async with AsyncClient(app=app, base_url="http://test") as client:
+        response = await client.patch("/api/v1/user/1", headers=HEADERS, json={"event_id": 3})
+
+    # merge events
+    async with AsyncClient(app=app, base_url="http://test") as client:
+        response = await client.patch("/api/v1/user/1/events", headers=HEADERS)
+
+    assert response.json() =={"message": "success"}
+
+    event=await event_repo.get_event_by_id(event_id=1)
+    assert event is None
+
+    event=await event_repo.get_event_by_id(event_id=2)
+    assert event is None
+
+    event=await event_repo.get_event_by_id(event_id=3)
+    assert event is not None
+
+    new_event=await event_repo.get_event_by_id(event_id=4)
+    assert new_event is not None
+    assert new_event.title == "title1;title2"
+    assert new_event.description == "title1: description1;title2: description2"
+
+    events = await user_repo.get_events_by_id(user_id=1)
+    assert len(events)==2
+    assert events[0].id == 3
+    assert events[0].title == "title3"
+    assert events[0].description == "description3"
+
+    assert events[1].id == 4
+    assert events[1].title == "title1;title2"
+    assert events[1].description == "title1: description1;title2: description2"
+
