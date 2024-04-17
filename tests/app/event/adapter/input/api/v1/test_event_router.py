@@ -62,6 +62,30 @@ async def test_get_event_by_id(session: AsyncSession):
     assert sut["description"] == "description"
     assert sut["status"] == StatusEnum.TODO.value
 
+    # add user to event
+    email = "h@id.e"
+    nickname = "hide"
+    body = {
+        "email": email,
+        "password1": "a",
+        "password2": "a",
+        "nickname": nickname,
+        "lat": 37.123,
+        "lng": 127.123,
+    }
+    async with AsyncClient(app=app, base_url="http://test") as client:
+        response = await client.post("/api/v1/user", headers=HEADERS, json=body)
+
+    async with AsyncClient(app=app, base_url="http://test") as client:
+        response = await client.put("/api/v1/event/1/invitee", headers=HEADERS, json={"user_id": 1})
+
+    async with AsyncClient(app=app, base_url="http://test") as client:
+        response = await client.get("/api/v1/event/1", headers=HEADERS)
+
+    sut = response.json()
+    # print(sut)
+    assert sut["invitees"] == [1]
+
 @pytest.mark.asyncio
 async def test_delete_event_by_id(session: AsyncSession):
     body={
@@ -109,7 +133,7 @@ async def test_add_invitee_by_id(session: AsyncSession):
         response = await client.post("/api/v1/user", headers=HEADERS, json=body)
 
     async with AsyncClient(app=app, base_url="http://test") as client:
-        response = await client.patch("/api/v1/event/1", headers=HEADERS, json={"user_id": 1})
+        response = await client.put("/api/v1/event/1/invitee", headers=HEADERS, json={"user_id": 1})
 
     assert response.json() == {"event_id": 1, "user_id": 1}
     event_repo = EventSQLAlchemyRepo()

@@ -66,13 +66,10 @@ async def get_user_by_id(
     usecase: UserUseCase = Depends(Provide[Container.user_service]),
 ):
     user=await usecase.get_user_by_id(user_id=user_id)
-    events=[]
-    for event in user.events:
-        events.append({"title: "+event.title})
-    return {"id": user.id, "email": user.email, "nickname": user.nickname,"events": events}
+    events=["title: "+event.title for event in await usecase.get_events_by_id(user_id=user_id)]
+    return GetUserResponseDTO(id=user.id, email=user.email, nickname=user.nickname, events=events)
 
-
-@user_router.patch("/{user_id}",
+@user_router.put("/{user_id}/event",
                     response_model=AddEventResponseDTO)
 @inject
 async def add_event_by_id(
@@ -83,7 +80,7 @@ async def add_event_by_id(
     await usecase.add_existing_event_by_eventid(user_id=user_id, event_id=request.event_id)
     return {"user_id": user_id, "event_id": request.event_id}
 
-@user_router.patch("/{user_id}/events")
+@user_router.put("/{user_id}/events")
 @inject
 async def merge_events_by_id(
     user_id:int,

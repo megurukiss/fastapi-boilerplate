@@ -32,9 +32,10 @@ async def get_event_by_id(
         event_id:int,
         usecase: EventUseCase = Depends(Provide[Container.event_service]),
 ):
-    event=await usecase.get_event_by_id(event_id=event_id)
-    return {"id": event.id, "title": event.title, "description": event.description, "status": event.status,
-            "startTime": event.startTime, "endTime": event.endTime, "createdAt": event.created_at, "updatedAt": event.updated_at}
+    # event=await usecase.get_event_by_id(event_id=event_id)
+    # return {"id": event.id, "title": event.title, "description": event.description, "status": event.status,
+    #         "startTime": event.startTime, "endTime": event.endTime, "createdAt": event.created_at, "updatedAt": event.updated_at}
+    return await usecase.get_event_by_id(event_id=event_id)
 
 
 @event_router.delete("/{event_id}")
@@ -46,7 +47,7 @@ async def delete_event_by_id(
     await usecase.delete_event_by_id(event_id=event_id)
     return {"message": "success"}
 
-@event_router.patch("/{event_id}",
+@event_router.put("/{event_id}/invitee",
                     response_model=AddInviteeResponseDTO)
 @inject
 async def add_invitee_by_id(

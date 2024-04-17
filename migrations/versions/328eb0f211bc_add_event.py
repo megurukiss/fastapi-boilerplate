@@ -23,20 +23,19 @@ def upgrade():
                     sa.Column('id', sa.BigInteger(), autoincrement=True, nullable=False),
                     sa.Column('title', sa.String(length=255), nullable=False),
                     sa.Column('description', sa.String(length=255), nullable=True),
-                    sa.Column('status', sa.String(length=255), nullable=False),
                     sa.Column('startTime', sa.DateTime(), nullable=True),
                     sa.Column('endTime', sa.DateTime(), nullable=True),
                     sa.Column("created_at", sa.DateTime(), nullable=False),
                     sa.Column("updated_at", sa.DateTime(), nullable=False),
                     sa.PrimaryKeyConstraint('id')
                     )
-    op.execute("ALTER TABLE event MODIFY COLUMN status ENUM('TODO', 'IN_PROGRESS', 'COMPLETED') NOT NULL")
+    op.execute("ALTER TABLE event ADD COLUMN status ENUM('TODO', 'IN_PROGRESS', 'COMPLETED') NOT NULL")
     op.create_table('event_user',
                     sa.Column('event_id', sa.BigInteger(), nullable=False),
                     sa.Column('user_id', sa.BigInteger(), nullable=False),
-                    sa.ForeignKeyConstraint(['event_id'], ['event.id'], ),
-                    sa.ForeignKeyConstraint(['user_id'], ['user.id'], )
-                    )
+                    sa.ForeignKeyConstraint(['event_id'], ['event.id'],ondelete="CASCADE"),
+                    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ondelete="CASCADE" )
+    )
 
 
 def downgrade():

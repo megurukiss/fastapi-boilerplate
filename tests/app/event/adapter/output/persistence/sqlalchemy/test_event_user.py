@@ -29,9 +29,14 @@ async def test_save_user_event(session: AsyncSession):
 
 @pytest.mark.asyncio
 async def test_get_invitees_by_id(session: AsyncSession):
+    event=make_event()
+    user=make_user()
+    event.invitees.append(user)
+    await event_repo.save(event=event)
+    await user_repo.save(user=user)
     event_id=1
     invitees=await event_repo.get_invitees_by_id(event_id=event_id)
-    print([i.id for i in invitees])
+    # print([i.id for i in invitees])
 
 @pytest.mark.asyncio
 async def test_delete_event_user_by_id(session: AsyncSession):

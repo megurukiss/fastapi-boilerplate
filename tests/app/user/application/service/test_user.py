@@ -2,6 +2,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 
+from app.event.adapter.output.persistence.repository_adapter import EventRepositoryAdapter
 from app.user.adapter.output.persistence.repository_adapter import UserRepositoryAdapter
 from app.user.application.exception import (
     DuplicateEmailOrNicknameException,
@@ -15,7 +16,8 @@ from core.helpers.token import TokenHelper
 from tests.support.user_fixture import make_user
 
 repository_mock = AsyncMock(spec=UserRepositoryAdapter)
-user_service = UserService(repository=repository_mock)
+repository_mock_event= AsyncMock(spec=EventRepositoryAdapter)
+user_service = UserService(repository=repository_mock,event_repository=repository_mock_event)
 
 
 @pytest.mark.asyncio

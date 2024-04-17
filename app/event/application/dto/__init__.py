@@ -24,6 +24,7 @@ class GetEventResponseDTO(BaseModel):
     endTime: datetime = Field(..., description="End Time")
     createdAt: datetime = Field(..., description="Created At")
     updatedAt: datetime = Field(..., description="Updated At")
+    invitees:list= Field(..., description="Invitees")
 
 class AddInviteeResponseDTO(BaseModel):
     event_id: int = Field(..., description="Event ID")

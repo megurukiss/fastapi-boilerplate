@@ -17,7 +17,7 @@ class UserSQLAlchemyRepo(UserRepo):
         limit: int = 12,
         prev: int | None = None,
     ) -> list[User]:
-        query = select(User)
+        query = select(User).options(selectinload(User.events))
 
         if prev:
             query = query.where(User.id < prev)
@@ -45,7 +45,7 @@ class UserSQLAlchemyRepo(UserRepo):
 
     async def get_user_by_id(self, *, user_id: int) -> User | None:
         async with session_factory() as read_session:
-            stmt = await read_session.execute(select(User).options(selectinload(User.events)).where(User.id == user_id))
+            stmt = await read_session.execute(select(User).where(User.id == user_id))
             return stmt.scalars().first()
 
     async def get_user_by_email_and_password(

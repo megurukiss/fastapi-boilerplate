@@ -15,8 +15,8 @@ class StatusEnum(enum.Enum):
 
 # association table for many-to-many relationship between event and user
 assosition_table = Table('event_user', Base.metadata,
-    Column('event_id', Integer, ForeignKey('event.id')),
-    Column('user_id', Integer, ForeignKey('user.id'))
+    Column('event_id', Integer, ForeignKey('event.id', ondelete="CASCADE")),
+    Column('user_id', Integer, ForeignKey('user.id', ondelete="CASCADE"))
 )
 
 class Event(Base,TimestampMixin):
@@ -51,6 +51,9 @@ class EventRead(BaseModel):
     status: StatusEnum = Field(..., title="Status")
     startTime: datetime = Field(..., title="Start Time")
     endTime: datetime = Field(..., title="End Time")
+    createdAt: datetime = Field(..., title="Created At")
+    updatedAt: datetime = Field(..., title="Updated At")
+    invitees: list = Field(..., title="Invitees")
 
 # class User(Base):
 #     __tablename__ = "user"
