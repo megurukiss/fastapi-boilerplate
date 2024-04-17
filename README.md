@@ -1,5 +1,8 @@
 # FastAPI Boilerplate
 
+### Short Demo Video
+https://drive.google.com/file/d/1uvKvt1xeCfH0qwD0Hlhc2yVVH-k_07PA/view?usp=sharing
+
 # New Features
 - Event Entity
 - Modify User Entity to Support Event
@@ -152,6 +155,11 @@ app/user/domain/entity/user.py
 
 
 ## Run
+
+### Checkout eventAPIs branch
+```shell
+> git checkout eventAPIs
+```
 
 ### Launch docker
 ```shell
