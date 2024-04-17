@@ -96,8 +96,8 @@ app/user/domain/entity/user.py
   - Response
       ```json
       {
-          "user_id": {user_id},
-          "event_id": {event_id}
+          "user_id": "{user_id}",
+          "event_id": "{event_id}"
       }
       ```
 
@@ -124,8 +124,8 @@ app/user/domain/entity/user.py
   - Response
       ```json
       {
-          "user_id": {user_id},
-          "event_id": {event_id}
+          "user_id": "{user_id}",
+          "event_id": "{event_id}"
       }
       ```
 - Merge Events for a User
