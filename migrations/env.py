@@ -13,7 +13,7 @@ sys.path.append(parent_dir)
 config = context.config
 fileConfig(config.config_file_name)
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-
+sys.path.append(os.path.join(parent_dir,"app"))
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.

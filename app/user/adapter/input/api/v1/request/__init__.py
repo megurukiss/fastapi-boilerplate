@@ -13,3 +13,7 @@ class CreateUserRequest(BaseModel):
     nickname: str = Field(..., description="Nickname")
     lat: float = Field(..., description="Lat")
     lng: float = Field(..., description="Lng")
+
+
+class AddEventRequest(BaseModel):
+    event_id: int = Field(..., description="Event ID")
