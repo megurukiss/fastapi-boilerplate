@@ -47,7 +47,7 @@ app/user/domain/entity/user.py
         "description": "Event Description",
         "status": "TODO",
         "startTime": "2022-01-01T00:00:00",
-        "endTime": "2022-01-01T01:00:00",
+        "endTime": "2022-01-01T01:00:00"
     }
     ```
     - Response
@@ -58,9 +58,7 @@ app/user/domain/entity/user.py
         "description": "Event Description",
         "status": "TODO",
         "startTime": "2022-01-01T00:00:00",
-        "endTime": "2022-01-01T01:00:00",
-        "createdAt": "2022-01-01T00:00:00",
-        "updatedAt": "2022-01-01T00:00:00"
+        "endTime": "2022-01-01T01:00:00"
     }
     ```
 - Get Event
@@ -98,7 +96,8 @@ app/user/domain/entity/user.py
   - Response
       ```json
       {
-          "message": "success"
+          "user_id": {user_id},
+          "event_id": {event_id}
       }
       ```
 
@@ -125,7 +124,8 @@ app/user/domain/entity/user.py
   - Response
       ```json
       {
-          "message": "success"
+          "user_id": {user_id},
+          "event_id": {event_id}
       }
       ```
 - Merge Events for a User
